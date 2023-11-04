@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Path, Query
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 
 app = FastAPI()
 app.title = "Art gallery with FastAPI"
@@ -33,12 +34,12 @@ async def read_root(name: str):
 
 
 # users:
-@app.get("/users", tags=["Users"])
-async def get_users():
-    return users
+@app.get("/users", tags=["Users"], response_model=List)
+async def get_users() -> List[User]:
+    return JSONResponse(content=[], status_code=200)
 
 
-@app.get("/users/{id}", tags=["Users"])
+@app.get("/users/{id}", tags=["Users"], response_model=User)
 async def get_user_by_id(id: int = Path(ge=1, le=4)):
     return [user for user in users if id == user["id"]]
 
@@ -53,7 +54,7 @@ async def get_users_by_type(type: str, age: int = Query(ge=1, le=4)):
 @app.post("/users", tags=["Users"])
 async def create_user(user: User):
     users.append(user)
-    return users
+    return JSONResponse(content=users, status_code=202)
 
 
 @app.put("/users/{id}", tags=["Users"])
@@ -61,5 +62,5 @@ async def create_user(id: int, new_user: User):
     for user in users:
         if user["id"] == id:
             user["age"] = new_user.age
-            return users
-    return []
+            return JSONResponse(content=[], status_code=200)
+    return JSONResponse(content=[], status_code=404)
