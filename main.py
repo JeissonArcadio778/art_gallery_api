@@ -5,7 +5,7 @@ from typing import Optional, List
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt_manager import create_token, validate_token
 from config.database import Session, engine, Base
-from models.work_of_art import WorkOfArt
+from models.work_of_art import WorkOfArt as WorkOfArtModel
 
 users = [
     {"id": 1, "name": "Eulaloquita", "user_type": "user", "age": 21, "email": "sarita@gmail.com", "password": "123"},
@@ -42,6 +42,19 @@ class User(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {"id": 1, "name": "Eulaloquita", "user_type": "user", "age": 21, "email": "sarita@gmail.com", "password": "123"},
+        }
+
+class WorkOfArt(BaseModel):
+    id: Optional[int] = None
+    name: str = Field(max_length=20)
+    overview: str
+    year: int
+    rating: float
+    category: str
+
+    class Config:
+        json_schema_extra = {
+            "example": {"name": "Guernica", "overview": "Description of the war in spain", "year": 1900, "rating": 10.0, "category": "History"},
         }
 
 # test
@@ -99,3 +112,15 @@ async def create_user(id: int, new_user: User) -> List[User]:
             return JSONResponse(content=[], status_code=200)
     return JSONResponse(content=[], status_code=404)
 
+
+# Work of arts
+@app.post("/arts", tags=["Arts"], response_model=dict)
+async def create_work_art(art: WorkOfArt) -> dict:
+    db = Session()
+    new_art = WorkOfArtModel(**art.model_dump())
+    db.add(new_art)
+    db.commit()
+    return JSONResponse(status_code=201, content={
+        "message": "Work of Art created.",
+        "art": art.model_dump()
+    })
