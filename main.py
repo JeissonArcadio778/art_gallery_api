@@ -4,12 +4,12 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt_manager import create_token, validate_token
-
+from config.database import Session, engine, Base
+from models.work_of_art import WorkOfArt
 
 users = [
     {"id": 1, "name": "Eulaloquita", "user_type": "user", "age": 21, "email": "sarita@gmail.com", "password": "123"},
     {"id": 2, "name": "Yeloquito", "user_type": "admin", "age": 22,  "email": "yeye@gmail.com", "password": "12"},
-
 ]
 
 
@@ -17,6 +17,7 @@ app = FastAPI()
 app.title = "Art gallery with FastAPI"
 app.version = "0.0.1"
 
+Base.metadata.create_all(bind=engine)
 
 class JWTBearer(HTTPBearer):
     async def __call__(self, request: Request):
